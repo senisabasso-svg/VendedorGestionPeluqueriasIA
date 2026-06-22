@@ -9,8 +9,8 @@ export const SALES_CONTACT = {
 };
 
 export const PRICING = {
-  anepaMember: 1350,
-  standard: 1600,
+  anepaMember: 990,
+  standard: 1490,
   currency: 'UYU',
   anepaNote: 'Precio especial para socios de ANEPA',
 };
