@@ -20,8 +20,9 @@ Desde la raíz del repo también podés usar `npm run dev`.
 
 | Variable | Descripción |
 |----------|-------------|
-| `VITE_GEMINI_API_KEY` | API key (header `X-goog-api-key`) |
-| `VITE_GEMINI_MODEL` | Modelo, default `gemini-flash-latest` |
+| `VITE_GEMINI_API_KEY` | API key principal (proyecto 1) |
+| `VITE_GEMINI_API_KEY_FALLBACK` | API key de respaldo (otro proyecto Google AI); se usa si la principal agota cuota |
+| `VITE_GEMINI_MODEL` | Modelo, default `gemini-2.5-flash-lite` |
 
 ## Endpoint usado
 
@@ -49,7 +50,8 @@ POST https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest
 **Variables de entorno (obligatorias):**
 
 - `VITE_GEMINI_API_KEY`
-- `VITE_GEMINI_MODEL` = `gemini-flash-latest`
+- `VITE_GEMINI_API_KEY_FALLBACK` (opcional, otro proyecto)
+- `VITE_GEMINI_MODEL` = `gemini-2.5-flash-lite`
 
 ## Importante — seguridad
 
