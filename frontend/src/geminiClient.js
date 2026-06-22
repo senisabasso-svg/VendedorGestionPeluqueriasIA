@@ -1,4 +1,5 @@
 import { buildSystemPrompt } from './chatSystemPrompt.js';
+import { QUOTA_BUSY_MESSAGE } from './salesConfig.js';
 
 const GEMINI_MODEL = import.meta.env.VITE_GEMINI_MODEL || 'gemini-2.5-flash-lite';
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
@@ -18,8 +19,15 @@ function isQuotaError(status, message = '') {
     status === 429 ||
     lower.includes('quota exceeded') ||
     lower.includes('resource_exhausted') ||
-    lower.includes('rate limit')
+    lower.includes('rate limit') ||
+    lower.includes('exceeded your current quota')
   );
+}
+
+function quotaExceededError() {
+  const err = new Error(QUOTA_BUSY_MESSAGE);
+  err.isQuotaError = true;
+  return err;
 }
 
 /**
@@ -73,20 +81,27 @@ export async function askGemini(messages) {
     parts: [{ text: m.content }],
   }));
 
-  let lastError = null;
+  let lastQuotaError = false;
 
   for (let i = 0; i < apiKeys.length; i += 1) {
     try {
       return await callGemini(apiKeys[i], contents);
     } catch (err) {
-      lastError = err;
-      const hasFallback = i < apiKeys.length - 1;
-      if (err.isQuotaError && hasFallback) {
-        continue;
+      if (err.isQuotaError) {
+        lastQuotaError = true;
+        const hasFallback = i < apiKeys.length - 1;
+        if (hasFallback) continue;
+      }
+      if (err.isQuotaError) {
+        throw quotaExceededError();
       }
       throw err;
     }
   }
 
-  throw lastError || new Error('No se pudo consultar Gemini');
+  if (lastQuotaError) {
+    throw quotaExceededError();
+  }
+
+  throw new Error('No se pudo consultar Gemini');
 }

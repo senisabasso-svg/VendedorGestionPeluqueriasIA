@@ -3,6 +3,7 @@ import { CHAT_WELCOME_MESSAGE } from '../chatSystemPrompt.js';
 import { askGemini } from '../geminiClient.js';
 import {
   getWhatsAppUrl,
+  isQuotaBusyMessage,
   SALES_CONTACT,
   shouldShowDerivation,
   stripDerivationMarker,
@@ -15,6 +16,7 @@ const BENJAMIN_AVATAR = '/benja.png';
 
 function MessageBubble({ message, isAssistant }) {
   const showCta = isAssistant && shouldShowDerivation(message.content);
+  const showQuotaCta = isAssistant && isQuotaBusyMessage(message.content);
   const text = isAssistant ? stripDerivationMarker(message.content) : message.content;
 
   return (
@@ -24,6 +26,16 @@ function MessageBubble({ message, isAssistant }) {
       >
         {text}
       </div>
+      {showQuotaCta && (
+        <a
+          className="chat-assistant__whatsapp"
+          href={getWhatsAppUrl('Hola Juan Diego, escribo desde el chat con Benjamin. Tengo una consulta urgente.')}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          WhatsApp · {SALES_CONTACT.whatsappDisplay}
+        </a>
+      )}
       {showCta && (
         <div className="chat-assistant__cta">
           <p className="chat-assistant__cta-title">
@@ -80,7 +92,11 @@ export default function ChatAssistant() {
       const reply = await askGemini(nextMessages);
       setMessages((prev) => [...prev, { role: 'assistant', content: reply }]);
     } catch (err) {
-      setError(err.message || 'No se pudo conectar con Benjamin');
+      if (err.isQuotaError) {
+        setMessages((prev) => [...prev, { role: 'assistant', content: err.message }]);
+      } else {
+        setError(err.message || 'No se pudo conectar con Benjamin');
+      }
     } finally {
       setLoading(false);
     }
