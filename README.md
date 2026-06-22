@@ -29,6 +29,28 @@ Desde la raíz del repo también podés usar `npm run dev`.
 POST https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent
 ```
 
+## Deploy en Cloudflare Pages
+
+**Opción A — raíz del repo (como tenés ahora):**
+
+| Campo | Valor |
+|--------|--------|
+| Build command | `npm run build` |
+| Build output directory | `frontend/dist` |
+
+**Opción B — más simple:**
+
+| Campo | Valor |
+|--------|--------|
+| Root directory | `frontend` |
+| Build command | `npm run build` |
+| Build output directory | `dist` |
+
+**Variables de entorno (obligatorias):**
+
+- `VITE_GEMINI_API_KEY`
+- `VITE_GEMINI_MODEL` = `gemini-flash-latest`
+
 ## Importante — seguridad
 
 La API key queda en el bundle del frontend (visible en DevTools). Para producción pública conviene restringir la key por dominio en Google Cloud o usar un proxy backend.
