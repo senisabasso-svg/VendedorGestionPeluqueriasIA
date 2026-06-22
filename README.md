@@ -1,0 +1,36 @@
+# Benja — Asistente IA (solo frontend)
+
+Chat con **Benja** que llama **directo a la API de Gemini** desde el navegador. No requiere backend propio.
+
+## Configuración
+
+```bash
+cd frontend
+cp .env.example .env
+# Editá VITE_GEMINI_API_KEY con tu clave de Google AI Studio
+npm install
+npm run dev
+```
+
+Abrí http://localhost:5173/
+
+Desde la raíz del repo también podés usar `npm run dev`.
+
+## Variables
+
+| Variable | Descripción |
+|----------|-------------|
+| `VITE_GEMINI_API_KEY` | API key (header `X-goog-api-key`) |
+| `VITE_GEMINI_MODEL` | Modelo, default `gemini-flash-latest` |
+
+## Endpoint usado
+
+```
+POST https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent
+```
+
+## Importante — seguridad
+
+La API key queda en el bundle del frontend (visible en DevTools). Para producción pública conviene restringir la key por dominio en Google Cloud o usar un proxy backend.
+
+La carpeta `backend/` quedó obsoleta para este flujo; podés ignorarla.
