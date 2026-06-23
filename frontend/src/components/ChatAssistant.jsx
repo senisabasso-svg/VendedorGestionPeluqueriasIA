@@ -8,6 +8,7 @@ import {
   shouldShowDerivation,
   stripDerivationMarker,
 } from '../salesConfig.js';
+import { registerTrelloLead } from '../trelloClient.js';
 import './ChatAssistant.css';
 
 const BENJAMIN_NAME = 'Benjamin';
@@ -90,7 +91,12 @@ export default function ChatAssistant() {
 
     try {
       const reply = await askGemini(nextMessages);
+      const fullThread = [...nextMessages, { role: 'assistant', content: reply }];
       setMessages((prev) => [...prev, { role: 'assistant', content: reply }]);
+
+      if (shouldShowDerivation(reply)) {
+        registerTrelloLead(fullThread);
+      }
     } catch (err) {
       if (err.isQuotaError) {
         setMessages((prev) => [...prev, { role: 'assistant', content: err.message }]);
