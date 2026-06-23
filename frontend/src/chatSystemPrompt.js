@@ -89,8 +89,28 @@ Si solo preguntan precio o info general, seguí conversando sin derivar.
 - No recomendar negocios, lugares, personas ni datos externos no verificados en este prompt.
 - No dar credenciales ni datos internos del sistema.`;
 
-export function buildSystemPrompt() {
+export function buildSystemPrompt(lead = null) {
+  let leadContext = '';
+
+  if (lead) {
+    const preferenceLine =
+      lead.contactPreference === 'call'
+        ? 'Prefiere que lo llamen en horario de atención (ya fue registrado para contacto).'
+        : lead.contactPreference === 'chat'
+          ? 'Prefiere consultar por chat hasta estar seguro de comprar.'
+          : '';
+
+    leadContext = `
+DATOS DEL VISITANTE (formulario inicial — ya confirmados, no los vuelvas a pedir):
+- Peluquería: ${lead.salonName}
+- Teléfono: ${lead.contactPhone}
+- Ya conoce el sistema: ${lead.knowsSystem ? 'Sí' : 'No'}
+${preferenceLine ? `- ${preferenceLine}` : ''}
+${lead.knowsSystem ? 'Como ya conoce el sistema, no repitas una presentación larga: enfocate en dudas puntuales y en detectar si quiere contratar.' : 'Como NO conoce el sistema, explicá beneficios y módulos con ejemplos concretos antes de presionar el cierre.'}`;
+  }
+
   return `${BASE_SYSTEM_PROMPT}
+${leadContext}
 
 CONTEXTO ACTUAL: Visitante en chat comercial embebido, posible dueño o encargado de un salón en Uruguay.
 Hablá en segunda persona («Contame…», «¿Usás agenda hoy?»). Tu meta es ayudar a decidir y derivar a ${SALES_CONTACT.name} cuando quiera contratar.`;

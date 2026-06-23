@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { CHAT_WELCOME_MESSAGE } from '../chatSystemPrompt.js';
 import { askGemini } from '../geminiClient.js';
+import {
+  createEarlyContactMessage,
+  createWelcomeMessage,
+  getWhatsAppMessageForLead,
+} from '../leadProfile.js';
 import {
   getWhatsAppUrl,
   isQuotaBusyMessage,
@@ -9,13 +13,14 @@ import {
   stripDerivationMarker,
 } from '../salesConfig.js';
 import { registerTrelloLead } from '../trelloClient.js';
+import OnboardingForm from './OnboardingForm.jsx';
 import './ChatAssistant.css';
 
 const BENJAMIN_NAME = 'Benjamin';
 const BENJAMIN_TAGLINE = 'Tu asesor de Gestión de Peluquerías';
 const BENJAMIN_AVATAR = '/benja.png';
 
-function MessageBubble({ message, isAssistant }) {
+function MessageBubble({ message, isAssistant, lead, showEarlyContact }) {
   const showCta = isAssistant && shouldShowDerivation(message.content);
   const showQuotaCta = isAssistant && isQuotaBusyMessage(message.content);
   const text = isAssistant ? stripDerivationMarker(message.content) : message.content;
@@ -27,6 +32,19 @@ function MessageBubble({ message, isAssistant }) {
       >
         {text}
       </div>
+      {showEarlyContact && isAssistant && (
+        <div className="chat-assistant__cta">
+          <p className="chat-assistant__cta-title">Te contactamos en horario de atención</p>
+          <a
+            className="chat-assistant__whatsapp"
+            href={getWhatsAppUrl(getWhatsAppMessageForLead(lead, 'early'))}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            WhatsApp con {SALES_CONTACT.name} · {SALES_CONTACT.whatsappDisplay}
+          </a>
+        </div>
+      )}
       {showQuotaCta && (
         <a
           className="chat-assistant__whatsapp"
@@ -44,7 +62,9 @@ function MessageBubble({ message, isAssistant }) {
           </p>
           <a
             className="chat-assistant__whatsapp"
-            href={getWhatsAppUrl()}
+            href={getWhatsAppUrl(
+              lead ? getWhatsAppMessageForLead(lead, 'sale') : undefined
+            )}
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -60,9 +80,9 @@ function MessageBubble({ message, isAssistant }) {
 }
 
 export default function ChatAssistant() {
-  const [messages, setMessages] = useState([
-    { role: 'assistant', content: CHAT_WELCOME_MESSAGE },
-  ]);
+  const [lead, setLead] = useState(null);
+  const [earlyContactMode, setEarlyContactMode] = useState(false);
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -78,9 +98,29 @@ export default function ChatAssistant() {
     }
   }, [messages, loading]);
 
+  const handleOnboardingComplete = useCallback((profile) => {
+    setLead(profile);
+
+    const wantsCall = !profile.knowsSystem && profile.contactPreference === 'call';
+
+    if (wantsCall) {
+      const contactMessage = createEarlyContactMessage(profile);
+      setEarlyContactMode(true);
+      setMessages([{ role: 'assistant', content: contactMessage }]);
+      registerTrelloLead({
+        lead: profile,
+        type: 'early',
+        messages: [{ role: 'assistant', content: contactMessage }],
+      });
+      return;
+    }
+
+    setMessages([{ role: 'assistant', content: createWelcomeMessage(profile) }]);
+  }, []);
+
   const sendMessage = useCallback(async () => {
     const text = input.trim();
-    if (!text || loading) return;
+    if (!text || loading || !lead) return;
 
     const userMessage = { role: 'user', content: text };
     const nextMessages = [...messages, userMessage];
@@ -90,12 +130,12 @@ export default function ChatAssistant() {
     setLoading(true);
 
     try {
-      const reply = await askGemini(nextMessages);
+      const reply = await askGemini(nextMessages, lead);
       const fullThread = [...nextMessages, { role: 'assistant', content: reply }];
       setMessages((prev) => [...prev, { role: 'assistant', content: reply }]);
 
       if (shouldShowDerivation(reply)) {
-        registerTrelloLead(fullThread);
+        registerTrelloLead({ messages: fullThread, lead, type: 'sale' });
       }
     } catch (err) {
       if (err.isQuotaError) {
@@ -106,7 +146,7 @@ export default function ChatAssistant() {
     } finally {
       setLoading(false);
     }
-  }, [input, loading, messages]);
+  }, [input, loading, messages, lead]);
 
   const onKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -134,80 +174,109 @@ export default function ChatAssistant() {
         </header>
 
         <div className="chat-assistant__panel" role="region" aria-label="Chat con Benjamin">
-          <div className="chat-assistant__messages" ref={listRef}>
-            {messages.map((m, i) =>
-              m.role === 'assistant' ? (
-                <div key={i} className="chat-assistant__row chat-assistant__row--assistant">
-                  <img
-                    className="chat-assistant__bubble-avatar"
-                    src={BENJAMIN_AVATAR}
-                    alt=""
-                    aria-hidden="true"
-                  />
-                  <div className="chat-assistant__assistant-content">
-                    <span className="chat-assistant__sender">{BENJAMIN_NAME}</span>
-                    <MessageBubble message={m} isAssistant />
+          {!lead ? (
+            <OnboardingForm onComplete={handleOnboardingComplete} />
+          ) : (
+            <>
+              <div className="chat-assistant__messages" ref={listRef}>
+                {messages.map((m, i) =>
+                  m.role === 'assistant' ? (
+                    <div key={i} className="chat-assistant__row chat-assistant__row--assistant">
+                      <img
+                        className="chat-assistant__bubble-avatar"
+                        src={BENJAMIN_AVATAR}
+                        alt=""
+                        aria-hidden="true"
+                      />
+                      <div className="chat-assistant__assistant-content">
+                        <span className="chat-assistant__sender">{BENJAMIN_NAME}</span>
+                        <MessageBubble
+                          message={m}
+                          isAssistant
+                          lead={lead}
+                          showEarlyContact={earlyContactMode && i === 0}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div key={i} className="chat-assistant__row chat-assistant__row--user">
+                      <MessageBubble message={m} isAssistant={false} lead={lead} />
+                    </div>
+                  )
+                )}
+                {loading && (
+                  <div className="chat-assistant__row chat-assistant__row--assistant">
+                    <img
+                      className="chat-assistant__bubble-avatar"
+                      src={BENJAMIN_AVATAR}
+                      alt=""
+                      aria-hidden="true"
+                    />
+                    <div className="chat-assistant__assistant-content">
+                      <span className="chat-assistant__sender">{BENJAMIN_NAME}</span>
+                      <div className="chat-assistant__bubble chat-assistant__bubble--assistant chat-assistant__typing">
+                        Escribiendo…
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div key={i} className="chat-assistant__row chat-assistant__row--user">
-                  <MessageBubble message={m} isAssistant={false} />
-                </div>
-              )
-            )}
-            {loading && (
-              <div className="chat-assistant__row chat-assistant__row--assistant">
-                <img
-                  className="chat-assistant__bubble-avatar"
-                  src={BENJAMIN_AVATAR}
-                  alt=""
-                  aria-hidden="true"
-                />
-                <div className="chat-assistant__assistant-content">
-                  <span className="chat-assistant__sender">{BENJAMIN_NAME}</span>
-                  <div className="chat-assistant__bubble chat-assistant__bubble--assistant chat-assistant__typing">
-                    Escribiendo…
-                  </div>
-                </div>
+                )}
               </div>
-            )}
-          </div>
 
-          {error && <p className="chat-assistant__error">{error}</p>}
+              {error && <p className="chat-assistant__error">{error}</p>}
 
-          {hasDerivation && (
-            <div className="chat-assistant__cta-bar">
-              <span>¿Listo para el alta?</span>
-              <a
-                className="chat-assistant__whatsapp chat-assistant__whatsapp--compact"
-                href={getWhatsAppUrl()}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                WhatsApp con {SALES_CONTACT.name}
-              </a>
-            </div>
+              {earlyContactMode && (
+                <div className="chat-assistant__cta-bar">
+                  <span>¿Preferís no esperar la llamada?</span>
+                  <a
+                    className="chat-assistant__whatsapp chat-assistant__whatsapp--compact"
+                    href={getWhatsAppUrl(getWhatsAppMessageForLead(lead, 'early'))}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    WhatsApp con {SALES_CONTACT.name}
+                  </a>
+                </div>
+              )}
+
+              {hasDerivation && !earlyContactMode && (
+                <div className="chat-assistant__cta-bar">
+                  <span>¿Listo para el alta?</span>
+                  <a
+                    className="chat-assistant__whatsapp chat-assistant__whatsapp--compact"
+                    href={getWhatsAppUrl(getWhatsAppMessageForLead(lead, 'sale'))}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    WhatsApp con {SALES_CONTACT.name}
+                  </a>
+                </div>
+              )}
+
+              <footer className="chat-assistant__footer">
+                <textarea
+                  className="chat-assistant__input"
+                  rows={3}
+                  placeholder={
+                    earlyContactMode
+                      ? '¿Alguna consulta mientras te contactamos?…'
+                      : 'Escribile a Benjamin…'
+                  }
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={onKeyDown}
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  className="chat-assistant__send"
+                  onClick={sendMessage}
+                  disabled={loading || !input.trim()}
+                >
+                  Enviar
+                </button>
+              </footer>
+            </>
           )}
-
-          <footer className="chat-assistant__footer">
-            <textarea
-              className="chat-assistant__input"
-              rows={3}
-              placeholder="Contale a Benjamin sobre tu salón…"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={onKeyDown}
-              disabled={loading}
-            />
-            <button
-              type="button"
-              className="chat-assistant__send"
-              onClick={sendMessage}
-              disabled={loading || !input.trim()}
-            >
-              Enviar
-            </button>
-          </footer>
         </div>
       </div>
     </div>

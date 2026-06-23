@@ -33,8 +33,9 @@ function quotaExceededError() {
 /**
  * @param {string} apiKey
  * @param {Array<{ role: 'user' | 'assistant', parts: { text: string }[] }>} contents
+ * @param {import('./leadProfile.js').LeadProfile | null} lead
  */
-async function callGemini(apiKey, contents) {
+async function callGemini(apiKey, contents, lead) {
   const res = await fetch(GEMINI_URL, {
     method: 'POST',
     headers: {
@@ -43,7 +44,7 @@ async function callGemini(apiKey, contents) {
     },
     body: JSON.stringify({
       systemInstruction: {
-        parts: [{ text: buildSystemPrompt() }],
+        parts: [{ text: buildSystemPrompt(lead) }],
       },
       contents,
     }),
@@ -69,8 +70,9 @@ async function callGemini(apiKey, contents) {
 
 /**
  * @param {Array<{ role: 'user' | 'assistant', content: string }>} messages
+ * @param {import('./leadProfile.js').LeadProfile | null} [lead]
  */
-export async function askGemini(messages) {
+export async function askGemini(messages, lead = null) {
   const apiKeys = getApiKeys();
   if (apiKeys.length === 0) {
     throw new Error('Falta VITE_GEMINI_API_KEY (configurala en .env o Cloudflare)');
@@ -85,7 +87,7 @@ export async function askGemini(messages) {
 
   for (let i = 0; i < apiKeys.length; i += 1) {
     try {
-      return await callGemini(apiKeys[i], contents);
+      return await callGemini(apiKeys[i], contents, lead);
     } catch (err) {
       if (err.isQuotaError) {
         lastQuotaError = true;

@@ -1,15 +1,20 @@
 import { stripDerivationMarker } from './salesConfig.js';
 
-const SESSION_KEY = 'benjamin_trello_lead_sent';
+const SESSION_KEYS = {
+  early: 'benjamin_trello_early_sent',
+  sale: 'benjamin_trello_sale_sent',
+};
 
 /**
- * Registra un lead calificado en Trello vía Cloudflare Pages Function.
- * Falla en silencio para no interrumpir la experiencia del chat.
- *
- * @param {Array<{ role: 'user' | 'assistant', content: string }>} messages
+ * @param {object} params
+ * @param {Array<{ role: string, content: string }>} [params.messages]
+ * @param {import('./leadProfile.js').LeadProfile} [params.lead]
+ * @param {'early' | 'sale'} [params.type]
  */
-export async function registerTrelloLead(messages) {
-  if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem(SESSION_KEY)) {
+export async function registerTrelloLead({ messages = [], lead = null, type = 'sale' }) {
+  const sessionKey = SESSION_KEYS[type] || SESSION_KEYS.sale;
+
+  if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem(sessionKey)) {
     return;
   }
 
@@ -22,11 +27,11 @@ export async function registerTrelloLead(messages) {
     const res = await fetch('/api/trello-lead', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: payload }),
+      body: JSON.stringify({ messages: payload, lead, type }),
     });
 
     if (res.ok && typeof sessionStorage !== 'undefined') {
-      sessionStorage.setItem(SESSION_KEY, '1');
+      sessionStorage.setItem(sessionKey, '1');
     }
   } catch {
     // El chat y WhatsApp siguen funcionando aunque Trello falle

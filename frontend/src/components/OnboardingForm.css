@@ -1,0 +1,126 @@
+.onboarding {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: #fafafa;
+}
+
+.onboarding__card {
+  width: min(480px, 100%);
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e4e4e7;
+  padding: 1.5rem;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+}
+
+.onboarding__title {
+  margin: 0 0 0.35rem;
+  font-size: 1.25rem;
+  color: #1e1b4b;
+}
+
+.onboarding__subtitle {
+  margin: 0 0 1.25rem;
+  font-size: 0.9rem;
+  color: #71717a;
+}
+
+.onboarding__step {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.onboarding__label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #3f3f46;
+}
+
+.onboarding__input {
+  width: 100%;
+  border: 1px solid #d4d4d8;
+  border-radius: 10px;
+  padding: 0.75rem 0.9rem;
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+.onboarding__input:focus {
+  outline: 2px solid #7c3aed;
+  border-color: transparent;
+}
+
+.onboarding__question {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #27272a;
+  line-height: 1.45;
+}
+
+.onboarding__choices {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.onboarding__choice {
+  border: 1px solid #d4d4d8;
+  background: #fff;
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+  font-family: inherit;
+}
+
+.onboarding__choice:hover {
+  border-color: #7c3aed;
+  background: #faf5ff;
+}
+
+.onboarding__choice--highlight {
+  border-color: #7c3aed;
+  background: #f5f3ff;
+}
+
+.onboarding__primary {
+  margin-top: 0.5rem;
+  border: none;
+  border-radius: 12px;
+  background: #7c3aed;
+  color: #fff;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 0.85rem 1rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.onboarding__primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.onboarding__back {
+  align-self: flex-start;
+  border: none;
+  background: transparent;
+  color: #7c3aed;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 0.25rem 0;
+  font-family: inherit;
+}
+
+.onboarding__back:hover {
+  text-decoration: underline;
+}

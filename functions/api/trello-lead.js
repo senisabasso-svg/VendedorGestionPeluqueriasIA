@@ -12,13 +12,60 @@ function formatMessages(messages = []) {
     .join('\n\n');
 }
 
-function buildCardName() {
+function formatLeadBlock(lead) {
+  if (!lead) return '';
+
+  const lines = [
+    '--- Datos del lead ---',
+    `Peluquería: ${lead.salonName || '—'}`,
+    `Teléfono: ${lead.contactPhone || '—'}`,
+    `Ya conoce el sistema: ${lead.knowsSystem ? 'Sí' : 'No'}`,
+  ];
+
+  if (lead.contactPreference === 'call') {
+    lines.push('Preferencia: Quiere que lo llamen en horario de atención');
+  } else if (lead.contactPreference === 'chat') {
+    lines.push('Preferencia: Seguir consultando por chat');
+  }
+
+  return lines.join('\n');
+}
+
+function buildCardName(type, lead) {
   const when = new Date().toLocaleString('es-UY', {
     timeZone: 'America/Montevideo',
     dateStyle: 'short',
     timeStyle: 'short',
   });
+
+  if (type === 'early' && lead?.salonName) {
+    return `Contacto solicitado — ${lead.salonName}`;
+  }
+
+  if (lead?.salonName) {
+    return `Lead venta — ${lead.salonName} — ${when}`;
+  }
+
   return `Lead chat Benjamin — ${when}`;
+}
+
+function buildDescription(type, lead, messages) {
+  const intro =
+    type === 'early'
+      ? 'Solicitud de contacto telefónico desde el chat comercial (no conoce el sistema).'
+      : 'Benjamin detectó intención de contratar Gestión de Peluquerías.';
+
+  const parts = [
+    intro,
+    '',
+    formatLeadBlock(lead),
+  ];
+
+  if (messages.length > 0) {
+    parts.push('', '--- Conversación ---', formatMessages(messages));
+  }
+
+  return parts.filter(Boolean).join('\n').slice(0, MAX_DESC_LENGTH);
 }
 
 function corsHeaders() {
@@ -46,21 +93,15 @@ export async function onRequestPost(context) {
   try {
     const body = await context.request.json();
     const messages = Array.isArray(body.messages) ? body.messages : [];
-
-    const desc = [
-      'Nuevo lead desde el chat comercial de Gestión de Peluquerías.',
-      'Benjamin detectó intención de contratar.',
-      '',
-      '--- Conversación ---',
-      formatMessages(messages).slice(0, MAX_DESC_LENGTH),
-    ].join('\n');
+    const lead = body.lead || null;
+    const type = body.type === 'early' ? 'early' : 'sale';
 
     const params = new URLSearchParams({
       key: TRELLO_API_KEY,
       token: TRELLO_TOKEN,
       idList: TRELLO_LIST_ID,
-      name: buildCardName(),
-      desc,
+      name: buildCardName(type, lead),
+      desc: buildDescription(type, lead, messages),
     });
 
     const trelloRes = await fetch(`https://api.trello.com/1/cards?${params.toString()}`, {
