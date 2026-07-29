@@ -15,7 +15,7 @@ export function createWelcomeMessage(lead) {
     return `¡Hola! Gracias por tus datos, ${lead.salonName}. Ya conocés Gestión de Peluquerías — contame en qué te puedo ayudar hoy o si querés avanzar con el alta.`;
   }
 
-  return `¡Hola! Soy Benjamin, tu asesor de Gestión de Peluquerías. Te voy a contar cómo el sistema puede ordenar ${lead.salonName} — cobros, turnos, stock, clientes e informes. ¿Qué es lo que más te cuesta hoy en el salón?`;
+  return `¡Hola! Soy el asistente en ventas de Febrois-Peluquerías. Te voy a contar cómo el sistema puede ordenar ${lead.salonName} — cobros, turnos, stock, clientes e informes. ¿Qué es lo que más te cuesta hoy en el salón?`;
 }
 
 export function createEarlyContactMessage(lead) {
@@ -24,7 +24,7 @@ export function createEarlyContactMessage(lead) {
 
 export function getWhatsAppMessageForLead(lead, type = 'sale') {
   if (type === 'early') {
-    return `Hola Juan Diego, soy de ${lead.salonName} (${lead.contactPhone}). Vengo del chat con Benjamin y prefiero que me contacten para conocer Gestión de Peluquerías.`;
+    return `Hola Juan Diego, soy de ${lead.salonName} (${lead.contactPhone}). Vengo del chat del asistente en ventas de Febrois-Peluquerías y prefiero que me contacten para conocer Gestión de Peluquerías.`;
   }
-  return `Hola Juan Diego, soy de ${lead.salonName} (${lead.contactPhone}). Vengo del chat con Benjamin y quiero contratar Gestión de Peluquerías.`;
+  return `Hola Juan Diego, soy de ${lead.salonName} (${lead.contactPhone}). Vengo del chat del asistente en ventas de Febrois-Peluquerías y quiero contratar Gestión de Peluquerías.`;
 }

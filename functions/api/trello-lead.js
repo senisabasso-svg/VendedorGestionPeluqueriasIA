@@ -3,7 +3,7 @@ const MAX_DESC_LENGTH = 16000;
 function formatMessages(messages = []) {
   return messages
     .map((m) => {
-      const label = m.role === 'user' ? 'Cliente' : 'Benjamin';
+      const label = m.role === 'user' ? 'Cliente' : 'Asistente';
       const text = String(m.content || '')
         .replace('[DERIVAR_JUAN_DIEGO]', '')
         .trim();

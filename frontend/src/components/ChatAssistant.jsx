@@ -16,9 +16,10 @@ import { registerTrelloLead } from '../trelloClient.js';
 import OnboardingForm from './OnboardingForm.jsx';
 import './ChatAssistant.css';
 
-const BENJAMIN_NAME = 'Benjamin';
-const BENJAMIN_TAGLINE = 'Tu asesor de Gestión de Peluquerías';
-const BENJAMIN_AVATAR = '/benja.png';
+const ASSISTANT_NAME = 'Asistente en ventas de Febrois-Peluquerías';
+const ASSISTANT_SHORT_NAME = 'Asistente';
+const ASSISTANT_TAGLINE = 'Asesor comercial IA · Gestión de Peluquerías';
+const ASSISTANT_AVATAR = '/ai-avatar.svg';
 
 function MessageBubble({ message, isAssistant, lead, showEarlyContact }) {
   const showCta = isAssistant && shouldShowDerivation(message.content);
@@ -48,7 +49,7 @@ function MessageBubble({ message, isAssistant, lead, showEarlyContact }) {
       {showQuotaCta && (
         <a
           className="chat-assistant__whatsapp"
-          href={getWhatsAppUrl('Hola Juan Diego, escribo desde el chat con Benjamin. Tengo una consulta urgente.')}
+          href={getWhatsAppUrl('Hola Juan Diego, escribo desde el chat del asistente en ventas de Febrois-Peluquerías. Tengo una consulta urgente.')}
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -141,7 +142,7 @@ export default function ChatAssistant() {
       if (err.isQuotaError) {
         setMessages((prev) => [...prev, { role: 'assistant', content: err.message }]);
       } else {
-        setError(err.message || 'No se pudo conectar con Benjamin');
+        setError(err.message || 'No se pudo conectar con el asistente');
       }
     } finally {
       setLoading(false);
@@ -161,19 +162,19 @@ export default function ChatAssistant() {
         <header className="chat-assistant__profile">
           <img
             className="chat-assistant__avatar"
-            src={BENJAMIN_AVATAR}
-            alt={`${BENJAMIN_NAME}, ${BENJAMIN_TAGLINE}`}
+            src={ASSISTANT_AVATAR}
+            alt={`${ASSISTANT_NAME}, ${ASSISTANT_TAGLINE}`}
           />
           <div className="chat-assistant__identity">
-            <h1 className="chat-assistant__name">{BENJAMIN_NAME}</h1>
-            <p className="chat-assistant__tagline">{BENJAMIN_TAGLINE}</p>
+            <h1 className="chat-assistant__name">{ASSISTANT_NAME}</h1>
+            <p className="chat-assistant__tagline">{ASSISTANT_TAGLINE}</p>
             <span className="chat-assistant__badge">
-              Asesor comercial IA · Febrois · Gestión de Peluquerías
+              Asistente IA · Febrois · Gestión de Peluquerías
             </span>
           </div>
         </header>
 
-        <div className="chat-assistant__panel" role="region" aria-label="Chat con Benjamin">
+        <div className="chat-assistant__panel" role="region" aria-label="Chat con el asistente en ventas">
           {!lead ? (
             <OnboardingForm onComplete={handleOnboardingComplete} />
           ) : (
@@ -184,12 +185,12 @@ export default function ChatAssistant() {
                     <div key={i} className="chat-assistant__row chat-assistant__row--assistant">
                       <img
                         className="chat-assistant__bubble-avatar"
-                        src={BENJAMIN_AVATAR}
+                        src={ASSISTANT_AVATAR}
                         alt=""
                         aria-hidden="true"
                       />
                       <div className="chat-assistant__assistant-content">
-                        <span className="chat-assistant__sender">{BENJAMIN_NAME}</span>
+                        <span className="chat-assistant__sender">{ASSISTANT_SHORT_NAME}</span>
                         <MessageBubble
                           message={m}
                           isAssistant
@@ -208,12 +209,12 @@ export default function ChatAssistant() {
                   <div className="chat-assistant__row chat-assistant__row--assistant">
                     <img
                       className="chat-assistant__bubble-avatar"
-                      src={BENJAMIN_AVATAR}
+                      src={ASSISTANT_AVATAR}
                       alt=""
                       aria-hidden="true"
                     />
                     <div className="chat-assistant__assistant-content">
-                      <span className="chat-assistant__sender">{BENJAMIN_NAME}</span>
+                      <span className="chat-assistant__sender">{ASSISTANT_NAME}</span>
                       <div className="chat-assistant__bubble chat-assistant__bubble--assistant chat-assistant__typing">
                         Escribiendo…
                       </div>
@@ -259,7 +260,7 @@ export default function ChatAssistant() {
                   placeholder={
                     earlyContactMode
                       ? '¿Alguna consulta mientras te contactamos?…'
-                      : 'Escribile a Benjamin…'
+                      : 'Escribile al asistente…'
                   }
                   value={input}
                   onChange={(e) => setInput(e.target.value)}

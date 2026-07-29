@@ -18,12 +18,12 @@ export const PRICING = {
 export const DERIVATION_MARKER = '[DERIVAR_JUAN_DIEGO]';
 
 export const QUOTA_BUSY_MESSAGE =
-  '¡Uy! Ahora mismo tenemos muchas consultas de cosméticas y peluquerías. ¿Podés reintentar tu consulta en unos minutos? Si es urgente, escribile a Juan Diego al WhatsApp 092 331 019 y te atiende enseguida.';
+  '¡Uy! Ahora mismo tenemos muchas consultas de  cosméticas y peluquerías. ¿Podés reintentar tu consulta en unos minutos? Si es urgente, escribile a Juan Diego al WhatsApp 092 331 019 y te atiende enseguida.';
 
 export function getWhatsAppUrl(message) {
   const text = encodeURIComponent(
     message ||
-      'Hola Juan Diego, vengo del chat con Benjamin. Quiero contratar Gestión de Peluquerías.'
+      'Hola Juan Diego, vengo del chat del asistente en ventas de Febrois-Peluquerías. Quiero contratar Gestión de Peluquerías.'
   );
   return `https://wa.me/${SALES_CONTACT.whatsappRaw}?text=${text}`;
 }

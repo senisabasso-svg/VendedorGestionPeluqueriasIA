@@ -34,7 +34,7 @@ export default function OnboardingForm({ onComplete }) {
   return (
     <div className="onboarding">
       <div className="onboarding__card">
-        <h2 className="onboarding__title">Antes de charlar con Benjamin</h2>
+        <h2 className="onboarding__title">Antes de charlar con el asistente</h2>
         <p className="onboarding__subtitle">Completá estos datos para que te atienda mejor.</p>
 
         {step === 1 && (
