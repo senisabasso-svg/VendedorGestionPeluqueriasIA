@@ -214,7 +214,7 @@ export default function ChatAssistant() {
                       aria-hidden="true"
                     />
                     <div className="chat-assistant__assistant-content">
-                      <span className="chat-assistant__sender">{ASSISTANT_NAME}</span>
+                      <span className="chat-assistant__sender">{ASSISTANT_SHORT_NAME}</span>
                       <div className="chat-assistant__bubble chat-assistant__bubble--assistant chat-assistant__typing">
                         Escribiendo…
                       </div>
